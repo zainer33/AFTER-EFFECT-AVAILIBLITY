@@ -57,7 +57,7 @@ function Install-Fonts {
 function Install-Plugin {
     Write-Host "`n⬇ Installing Deep Glow Plugin..." -ForegroundColor Yellow
 
-    # Detect After Effects Plugins folder
+    # Detect AE Plugins folder automatically
     $AEPluginsPath = $null
     $PossibleAE = Get-ChildItem "C:\Program Files\Adobe\" -Directory -ErrorAction SilentlyContinue
     foreach ($d in $PossibleAE) {
@@ -73,28 +73,17 @@ function Install-Plugin {
         return
     }
 
-    # Mega downloader
-    $MegaExe = "$PSScriptRoot\megadl.exe"
-    if (-not (Test-Path $MegaExe)) {
-        Write-Host "Downloading Mega downloader..."
-        $MegaZip = "$TempDir\megatools.zip"
-        Invoke-WebRequest "https://github.com/megous/megatools/releases/latest/download/megatools-win64.zip" -OutFile $MegaZip
-        Expand-Archive -Force $MegaZip $TempDir
-        Move-Item "$TempDir\megatools-win64\megadl.exe" $MegaExe
-        Remove-Item "$TempDir\megatools-win64" -Recurse
-        Remove-Item $MegaZip
-    }
-
-    $MegaUrl = "https://mega.nz/file/T9B3nLxT#GG8zz9oa3RM28TEJiwwi8QexMraCOUjo2PN1tfEGsWs"
+    # Download Deep Glow plugin (must be direct HTTP/HTTPS link)
+    $PluginUrl = "https://mega.nz/file/T9B3nLxT#GG8zz9oa3RM28TEJiwwi8QexMraCOUjo2PN1tfEGsWs" # <-- replace with real direct download link
     $PluginFile = "$TempDir\DeepGlow.aex"
 
     Write-Host "Downloading Deep Glow plugin..."
-    Start-Process -FilePath $MegaExe -ArgumentList " $MegaUrl -o $PluginFile" -NoNewWindow -Wait
+    Invoke-WebRequest -Uri $PluginUrl -OutFile $PluginFile -UseBasicParsing -Verbose
 
     Write-Host "Copying plugin to AE Plugins folder..."
     Copy-Item $PluginFile $AEPluginsPath -Force
 
-    Write-Host "`n✅ Deep Glow installed successfully!" -ForegroundColor Green
+    Write-Host "`n✅ Deep Glow installed successfully in $AEPluginsPath!" -ForegroundColor Green
 }
 
 # -------------------- EXECUTE BASED ON USER CHOICE --------------------
