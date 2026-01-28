@@ -1,9 +1,10 @@
 # ==============================================
 # Lazyy AE Installer Interactive
 # Author: lazyy
+# Features: Fonts & Deep Glow Plugin installation
 # ==============================================
 
-# Admin check
+# -------------------- ADMIN CHECK --------------------
 if (-not ([Security.Principal.WindowsPrincipal] `
     [Security.Principal.WindowsIdentity]::GetCurrent()
 ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -12,22 +13,21 @@ if (-not ([Security.Principal.WindowsPrincipal] `
     exit
 }
 
-# Temp folder
+# -------------------- TEMP FOLDER --------------------
 $TempDir = "$PSScriptRoot\LazyyTemp"
 New-Item -Path $TempDir -ItemType Directory -Force | Out-Null
 
-# -------------------- MENU --------------------
-Write-Host "============================================="
-Write-Host " Lazyy AE Installer " -ForegroundColor Cyan
+# -------------------- USER PROMPT --------------------
+Write-Host "=============================================" -ForegroundColor Cyan
+Write-Host "          Lazyy AE Installer" -ForegroundColor Cyan
 Write-Host "============================================="
 Write-Host "What do you want to download/install?"
 Write-Host "1. Fonts only"
 Write-Host "2. Deep Glow Plugin only"
 Write-Host "3. Both Fonts + Deep Glow Plugin"
+$choice = Read-Host "Enter 1, 2, or 3"
 
-$choice = Read-Host "Enter 1, 2 or 3"
-
-# -------------------- FONTS --------------------
+# -------------------- FONTS FUNCTION --------------------
 function Install-Fonts {
     $FontDir = "$env:WINDIR\Fonts"
     $Fonts = @{
@@ -39,27 +39,25 @@ function Install-Fonts {
     }
 
     Write-Host "`n⬇ Installing Fonts..." -ForegroundColor Yellow
-
-    foreach ($key in $Fonts.Keys) {
-        $url = $Fonts[$key]
-        $zipPath = "$TempDir\$($key -replace ' ','_').zip"
-        Write-Host "Downloading $key..."
+    foreach ($fontName in $Fonts.Keys) {
+        $url = $Fonts[$fontName]
+        $zipPath = "$TempDir\$($fontName -replace ' ','_').zip"
+        Write-Host "Downloading $fontName..."
         Invoke-WebRequest $url -OutFile $zipPath -UseBasicParsing -Verbose
-        $extractPath = "$TempDir\$($key -replace ' ','_')"
+        $extractPath = "$TempDir\$($fontName -replace ' ','_')"
         Expand-Archive -Force $zipPath $extractPath
         Get-ChildItem $extractPath -Include *.ttf, *.otf -Recurse | ForEach-Object {
             Copy-Item $_.FullName $FontDir -Force
         }
     }
-
-    Write-Host "`n✅ Fonts installed!" -ForegroundColor Green
+    Write-Host "`n✅ Fonts installed successfully!" -ForegroundColor Green
 }
 
-# -------------------- PLUGIN --------------------
+# -------------------- PLUGIN FUNCTION --------------------
 function Install-Plugin {
     Write-Host "`n⬇ Installing Deep Glow Plugin..." -ForegroundColor Yellow
 
-    # Detect AE Plugins folder
+    # Detect After Effects Plugins folder
     $AEPluginsPath = $null
     $PossibleAE = Get-ChildItem "C:\Program Files\Adobe\" -Directory -ErrorAction SilentlyContinue
     foreach ($d in $PossibleAE) {
@@ -99,7 +97,7 @@ function Install-Plugin {
     Write-Host "`n✅ Deep Glow installed successfully!" -ForegroundColor Green
 }
 
-# -------------------- EXECUTE BASED ON CHOICE --------------------
+# -------------------- EXECUTE BASED ON USER CHOICE --------------------
 switch ($choice) {
     "1" { Install-Fonts }
     "2" { Install-Plugin }
@@ -107,7 +105,7 @@ switch ($choice) {
     default { Write-Host "❌ Invalid option, exiting." -ForegroundColor Red; exit }
 }
 
-# Cleanup temp folder
+# -------------------- CLEANUP --------------------
 Remove-Item $TempDir -Recurse -Force
-Write-Host "`n🎉 All tasks completed!" -ForegroundColor Cyan
+Write-Host "`n🎉 All selected tasks completed!" -ForegroundColor Cyan
 pause
